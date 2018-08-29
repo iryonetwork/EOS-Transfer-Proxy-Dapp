@@ -10,6 +10,7 @@
 #include "../utils.hpp"
 
 using namespace eosio;
+using namespace proxy;
 
 
 struct transfer_args
@@ -20,31 +21,6 @@ struct transfer_args
     std::string memo;
 };
 
-struct token 
-{
-    token(account_name tkn) : _self(tkn) {}
-    struct account 
-    {
-        asset    balance;
-        uint64_t primary_key()const { return balance.symbol.name(); }
-    };
-    typedef eosio::multi_index<N(accounts), account> accounts;
-
-    bool has_balance(account_name owner,  symbol_type sym) const
-    {
-        accounts acnt(_self, owner);
-        return acnt.find(sym.name()) != acnt.end();
-    }
-
-private:
-    account_name _self;
-};
-
-
-std::string gen_proxy_memo(account_name recipient, const std::string& memo)
-{
-    return name_to_string(recipient) + " " + memo;
-}
 
 class proxy_test : private contract
 {
@@ -88,7 +64,7 @@ public:
             auto tkn = acnt.find(t.amount.symbol.name());
             if(tkn == acnt.end())
             {
-                acnt.emplace(t.from, [&]( auto& a) {
+                acnt.emplace(_self, [&]( auto& a) {
                     a.balance = extended_asset(t.amount, code);
                 });
             }
@@ -106,21 +82,11 @@ private:
     void transfer_via_proxy(account_name to, extended_asset amount, const std::string& memo)
     {
         auto proxy = proxy_.get();
-        if(!token(amount.contract).has_balance(to, amount.symbol)) {
-            buy_ram_bytes(250, proxy);
-        }
-
         dispatch_inline(amount.contract,  N(transfer), {{_self, N(active)}}, 
             std::make_tuple(_self, proxy, static_cast<asset&>(amount), gen_proxy_memo(to, memo))
         );
     }
 
-    void buy_ram_bytes(uint32_t bytes, account_name receiver) const
-    {
-        dispatch_inline(N(eosio),  N(buyrambytes), {{_self, N(active)}}, 
-            std::make_tuple(_self, receiver, bytes)
-        );
-    }
 
 private:
     singleton<N(proxy), account_name> proxy_;
