@@ -1,6 +1,7 @@
-# EOS-Transfer-Proxy-Dapp
+# RAM Token Proxy
+is a  EOS Transfer Proxy Dapp
 
-#### What this is
+#### What does it do
 Put this contract onto an account with no available RAM and then use it to proxy token transfers from your dapp to users that might have code installed.
 
 #### The problem
