@@ -13,12 +13,29 @@ By sending tokens to a proxy account with no available RAM, and with a memo wher
 #### Token types
 This contract accepts all token types that conform to the basic eosio.token contract. The only method that has to have an identical argument signature is the transfer method.
 
-## Improvements over other proxy contracts
+### How to setup your account with proxy
+1. You will first have to signup your account with proxy by calling `signup` action with your account name.
+  
+    `cleos push action <proxy_contract> signup '["<your_account>"]' -p <your_account>`
+  
+2. In case your contract transfers other tokens than EOS token you have to add eosio.code permission and authorise proxycontract to the active permissions of your contract. This will allow the proxycontract to buy ram in case needed for the token transfer. Make sure you have enough EOS on contracts, otherwise the buy ram action (and whole transfer) will fail.
+
+    ```
+    cleos set account permission <your_account> active \
+    '{"threshold": 1,"keys": [{"key": "<your_account_public_key>","weight": 1}],"accounts": [{"permission":{"actor":"<your_account>","permission":"eosio.code"},"weight":1},{"permission":{"actor":"<proxy_contract_account>","permission":"active"},"weight":1}]}' owner
+    ```
+### How to make transfer via proxy
+After you have set up your account with the proxy contract you are ready to make token transfer via proxy.
+To make proxy transfer put proxy account name as recipient and write the name of actual recipient of token at the beginning of memo. This way the proxy dapp will be able to forward your transfer to recipient. If you want to include your own memo in the transfer you have to separate recipient name and your memo with one `space`.
+
+  `cleos transfer <your_account> <proxy_account> <token_amount> "<token_recipient_name> <your_memo>"`
+  
+In case you will be making proxy transfers from contract you can use helper function `gen_proxy_memo` located in the [utiles.hpp](https://github.com/iryonetwork/RAM-Token-Proxy/blob/master/src/utils.hpp#L25) file which can generate correct memo for you.
+
+
+### Improvements over other proxy contracts
 
 This smartcontract is inspired by https://github.com/EOSEssentials/EOS-Proxy-Token, but with an extended ability to allow transfers of the new tokens to the accounts.
-
-Your contract needs to authorise the eosio.code to allow proxycontract to buy the ram in its name (on each transfer). Make sure you have enough EOS on contracts, otherwise the buy ram action (and whole transfer) would fail.
-
 
 #### EOS-Transfer-Proxy-Dapp is not production ready (needs more tests and reviews)!
 
