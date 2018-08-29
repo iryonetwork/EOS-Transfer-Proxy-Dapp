@@ -1,4 +1,4 @@
-# EOS-Transfer-Proxy-DApp
+# EOS-Transfer-Proxy-Dapp
 What this is
 Put this contract onto an account with no available RAM and then use it to proxy token transfers from your dapp to users that might have code installed.
 
@@ -10,3 +10,5 @@ By sending tokens to a proxy account with no available RAM, and with a memo wher
 
 Token types
 This contract accepts all token types that conform to the basic eosio.token contract. The only method that has to have an identical argument signature is the transfer method.
+
+#### EOS-Transfer-Proxy-Dapp is not production ready (needs more tests and reviews)!
