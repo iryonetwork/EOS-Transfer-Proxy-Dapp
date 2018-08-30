@@ -11,7 +11,7 @@
 using namespace eosio;
 using namespace proxy;
 
-static constexpr uint32_t tt_ram_bytes = 242; // new token transfer ram cost
+static constexpr uint32_t tt_ram_bytes = 245; // new token transfer ram cost
 
 account_name get_recipient_from_memo(const std::string& memo, std::size_t& end_pos)
 {
@@ -32,6 +32,13 @@ struct transfer_args
     asset amount;
     std::string memo;
 };
+
+void transfer_token(account_name from, account_name to, const extended_asset& quantity, std::string memo)
+{
+    dispatch_inline(quantity.contract,  N(transfer), {{from, N(active)}}, 
+        std::make_tuple(from, to, static_cast<const asset&>(quantity), std::move(memo))
+    );
+}
 
 
 class transfer_proxy : private contract
@@ -71,6 +78,13 @@ public:
         require_auth(owner);
         auto acnt = accounts.find(owner);
         accounts.erase(acnt);
+    }
+
+    // @abi action
+    void transfer(account_name from, account_name to, extended_asset quantity, std::string memo)
+    {
+        require_auth(from);
+        transfer_token(from, _self, quantity, gen_proxy_memo(to, memo));
     }
 
 //private_api:
@@ -119,7 +133,7 @@ private:
         {
             auto fee = get_transfer_fee(quantity);
             quantity -= fee;
-            transfer_token(fee_recipient.get(), fee, "Transfer fee");
+            transfer_token_from_self(fee_recipient.get(), fee, "Transfer fee");
         }
 
         if(quantity.amount > 0 &&
@@ -128,16 +142,13 @@ private:
             buy_ram_bytes(acnt.owner, tt_ram_bytes);
         }
 
-        transfer_token(recipient, quantity, std::move(memo));
+        transfer_token_from_self(recipient, quantity, std::move(memo));
     }
 
-    void transfer_token(account_name recipient, const extended_asset& quantity, std::string memo)
+    void transfer_token_from_self(account_name recipient, const extended_asset& quantity, std::string memo)
     {
-        if(quantity.amount > 0)
-        {
-            dispatch_inline(quantity.contract,  N(transfer), {{_self, N(active)}}, 
-                std::make_tuple(_self, recipient, static_cast<const asset&>(quantity), std::move(memo))
-            );
+        if(quantity.amount > 0) {
+            transfer_token(_self, recipient, quantity, std::move(memo));
         }
     }
 };
@@ -160,4 +171,4 @@ extern "C" {  \
     } \
 }
 
-EOSIO_ABI(transfer_proxy, (signup)(unregister)(setfreetxfr)(setfeerecip))
+EOSIO_ABI(transfer_proxy, (signup)(unregister)(transfer)(setfreetxfr)(setfeerecip))

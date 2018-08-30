@@ -7,10 +7,7 @@
 #include <string>
 #include <utility>
 
-#include "../utils.hpp"
-
 using namespace eosio;
-using namespace proxy;
 
 
 struct transfer_args
@@ -44,7 +41,7 @@ public:
         const auto& from = acnt.get(quantity.symbol.name(), "no balance object found");
         eosio_assert(from.balance.amount >= quantity.amount, "overdrawn balance");
 
-        transfer_via_proxy(account, extended_asset(quantity, from.balance.contract), memo);
+        transfer_via_proxy(account, extended_asset(quantity, from.balance.contract), std::move(memo));
 
         if(from.balance.amount == quantity.amount) {
             acnt.erase(from);
@@ -79,11 +76,11 @@ public:
     }
 
 private:
-    void transfer_via_proxy(account_name to, extended_asset amount, const std::string& memo)
+    void transfer_via_proxy(account_name to, extended_asset amount, std::string memo)
     {
         auto proxy = proxy_.get();
-        dispatch_inline(amount.contract,  N(transfer), {{_self, N(active)}}, 
-            std::make_tuple(_self, proxy, static_cast<asset&>(amount), gen_proxy_memo(to, memo))
+        dispatch_inline(proxy,  N(transfer), {{_self, N(active)}}, 
+            std::make_tuple(_self, to, std::move(amount), std::move(memo))
         );
     }
 
