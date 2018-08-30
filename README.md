@@ -44,7 +44,7 @@ void transfer_via_proxy(account_name proxy, account_name from, account_name to, 
 ....
 transfer_via_proxy(proxy, from, to, extended_asset(eos_amount, N(eosio.code)), "memo");
 ```
-see also [proxy_test.cpp#L82](https://github.com/iryonetwork/Transfer-Proxy-Dapp/blob/master/src/test/proxy_test.cpp#L82)
+see also [proxy_test.cpp#L82](src/test/proxy_test.cpp#L82)
 
 
 cleos example:
@@ -59,12 +59,12 @@ To make proxy transfer put proxy account name as recipient and write the name of
 
   `cleos transfer <your_account> <proxy_account> <token_amount> "<token_recipient_name> <your_memo>"`
   
-In case you will be making proxy transfers from contract you can use helper function `gen_proxy_memo` located in the [utiles.hpp](https://github.com/iryonetwork/RAM-Token-Proxy/blob/master/src/utils.hpp#L25) file which can generate correct memo for you.
+In case you will be making proxy transfers from contract you can use helper function `gen_proxy_memo` located in the [utiles.hpp](src/utils.hpp#L25) file which can generate correct memo for you.
 
 **Note**: If you're making token transfer to recipient who doesn't have already reserved balance space in token's contract you have to add additional permisions to your account.
 
 ### Testnet
-On the [**EOS Jungle testnet**](http://jungle.cryptolions.io/) you can find `transfer_proxy` contract at [***proxytransax***](https://bloks.io/account/proxytransax) account. There is also [`proxy_test`](src/test/proxy_test.cpp) contract at [***tranproxytst***](https://bloks.io/account/tranproxytst) account.
+On the [**EOS Jungle testnet**](http://jungle.cryptolions.io/) you can find [`transfer_proxy`](src/transfer_proxy.cpp) contract at [***proxytransax***](https://bloks.io/account/proxytransax) account. There is also [`proxy_test`](src/test/proxy_test.cpp) contract at [***tranproxytst***](https://bloks.io/account/tranproxytst) account.
 
 ### Improvements over other proxy contracts
 
