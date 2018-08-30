@@ -36,6 +36,8 @@ In case you will be making proxy transfers from contract you can use helper func
 
 This smartcontract is inspired by https://github.com/EOSEssentials/EOS-Proxy-Token, but with an extended ability to allow transfers of the new tokens to the accounts.
 
-#### EOS-Transfer-Proxy-Dapp is not production ready (needs more tests and reviews)!
+#### The contract charges 0.1% fee on every transfer. Contact us for whitelisting. 
+
+#### EOS-Transfer-Proxy-Dapp is not yet production ready (needs more tests and reviews)!
 
 
