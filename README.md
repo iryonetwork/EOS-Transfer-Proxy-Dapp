@@ -17,7 +17,7 @@ This contract accepts all token types that conform to the basic eosio.token cont
 
     `cleos push action <proxy_contract> signup '["<your_account>"]' -p <your_account>`
   
-2. In case your contract transfers other tokens than EOS token you have to add eosio.code permission and authorise proxycontract to the active permissions of your contract. This will allow the proxycontract to buy ram in case needed for the token transfer. Make sure you have enough EOS on contracts, otherwise the buy ram action (and whole transfer) will fail.
+2. In case your contract transfers other tokens than EOS token you have to add eosio.code permission to your account and authorise proxy contract to have active permission of your account. This will allow the proxy contract to buy ram in case needed for the token transfer. Make sure you have enough EOS on your account, otherwise the buy ram action (and whole transfer) will fail.
 
     ```
     cleos set account permission <your_account> active \
