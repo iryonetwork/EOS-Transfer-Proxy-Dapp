@@ -72,6 +72,6 @@ This smartcontract is inspired by https://github.com/EOSEssentials/EOS-Proxy-Tok
 
 #### The contract charges 0.1% fee on every transfer. Contact us for whitelisting. 
 
-#### EOS-Transfer-Proxy-Dapp is not yet production ready (needs more tests and reviews)!
+#### Code reviews welcome!
 
 
