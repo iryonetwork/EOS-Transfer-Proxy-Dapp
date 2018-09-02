@@ -63,6 +63,9 @@ In case you will be making proxy transfers from contract you can use helper func
 
 **Note**: If you're making token transfer to recipient who doesn't have already reserved balance space in token's contract you have to add additional permisions to your account.
 
+### Mainet
+On the **EOS Mainet** you can find [`transfer_proxy`](src/transfer_proxy.cpp) contract at [***proxytransax***](https://bloks.io/account/proxytransax) account.
+
 ### Testnet
 On the [**EOS Jungle testnet**](http://jungle.cryptolions.io/) you can find [`transfer_proxy`](src/transfer_proxy.cpp) contract at [***proxytransax***](https://bloks.io/account/proxytransax) account (switch to Jungle). There is also [`proxy_test`](src/test/proxy_test.cpp) contract at [***tranproxytst***](https://bloks.io/account/tranproxytst) account.
 
