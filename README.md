@@ -72,8 +72,8 @@ On the [**EOS Jungle testnet**](http://jungle.cryptolions.io/) you can find [`tr
 ### Improvements over other proxy contracts
 
 This smartcontract is inspired by https://github.com/EOSEssentials/EOS-Proxy-Token, but extends it with;   
-• token transfers to the recipients that don't hold any yet.  
-• keeps your memo structure intact (easier integration)
+• Token transfers to the recipients that don't hold any yet.  
+• Keeping your memo structure intact (easier integration).
 
 #### The contract charges 0.1% fee on every transfer. Contact us for whitelisting. 
 
