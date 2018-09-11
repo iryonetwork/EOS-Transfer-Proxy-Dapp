@@ -102,6 +102,7 @@ public:
     void setfeerecip(account_name recipient)
     {
         require_auth(_self);
+        eosio_assert(is_account(recipient), "invalid account");
         fee_recipient.set(recipient, _self);
     }
 
@@ -133,21 +134,18 @@ private:
         {
             auto fee = get_transfer_fee(quantity);
             quantity -= fee;
-            transfer_token_from_self(fee_recipient.get(), fee, "Transfer fee");
+            transfer_token_from_self(acnt.owner, fee_recipient.get(), fee, "Transfer fee");
         }
-
-        if(quantity.amount > 0 &&
-            !token(quantity.contract).has_balance(recipient, quantity.symbol))
-        {
-            buy_ram_bytes(acnt.owner, tt_ram_bytes);
-        }
-
-        transfer_token_from_self(recipient, quantity, std::move(memo));
+        transfer_token_from_self(acnt.owner, recipient, quantity, std::move(memo));
     }
 
-    void transfer_token_from_self(account_name recipient, const extended_asset& quantity, std::string memo)
+    void transfer_token_from_self(account_name ram_payer, account_name recipient, const extended_asset& quantity, std::string memo)
     {
-        if(quantity.amount > 0) {
+        if(quantity.amount > 0)
+        {
+            if(!token(quantity.contract).has_balance(recipient, quantity.symbol)) {
+                buy_ram_bytes(ram_payer, tt_ram_bytes);
+            }
             transfer_token(_self, recipient, quantity, std::move(memo));
         }
     }
