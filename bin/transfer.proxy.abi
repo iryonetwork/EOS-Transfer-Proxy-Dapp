@@ -1,125 +1,135 @@
 {
-    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT Mon Sep 24 16:28:48 2018",
-    "version": "eosio::abi/1.0",
-    "structs": [
+  "version": "eosio::abi/1.0",
+  "types": [],
+  "structs": [
+    {
+      "name": "account_t",
+      "base": "",
+      "fields": [
         {
-            "name": "account_t",
-            "base": "",
-            "fields": [
-                {
-                    "name": "owner",
-                    "type": "name"
-                },
-                {
-                    "name": "free_transfer",
-                    "type": "bool"
-                }
-            ]
+          "name": "owner",
+          "type": "name"
         },
         {
-            "name": "setfeerecip",
-            "base": "",
-            "fields": [
-                {
-                    "name": "recipient",
-                    "type": "name"
-                }
-            ]
-        },
-        {
-            "name": "setfreetxfr",
-            "base": "",
-            "fields": [
-                {
-                    "name": "owner",
-                    "type": "name"
-                },
-                {
-                    "name": "free_transfer",
-                    "type": "bool"
-                }
-            ]
-        },
-        {
-            "name": "signup",
-            "base": "",
-            "fields": [
-                {
-                    "name": "owner",
-                    "type": "name"
-                }
-            ]
-        },
-        {
-            "name": "transfer",
-            "base": "",
-            "fields": [
-                {
-                    "name": "from",
-                    "type": "name"
-                },
-                {
-                    "name": "to",
-                    "type": "name"
-                },
-                {
-                    "name": "quantity",
-                    "type": "extended_asset"
-                },
-                {
-                    "name": "memo",
-                    "type": "string"
-                }
-            ]
-        },
-        {
-            "name": "unregister",
-            "base": "",
-            "fields": [
-                {
-                    "name": "owner",
-                    "type": "name"
-                }
-            ]
+          "name": "free_transfer",
+          "type": "bool"
         }
-    ],
-    "types": [],
-    "actions": [
+      ]
+    },
+    {
+      "name": "signup",
+      "base": "",
+      "fields": [
         {
-            "name": "setfeerecip",
-            "type": "setfeerecip",
-            "ricardian_contract": ""
-        },
-        {
-            "name": "setfreetxfr",
-            "type": "setfreetxfr",
-            "ricardian_contract": ""
-        },
-        {
-            "name": "signup",
-            "type": "signup",
-            "ricardian_contract": ""
-        },
-        {
-            "name": "transfer",
-            "type": "transfer",
-            "ricardian_contract": ""
-        },
-        {
-            "name": "unregister",
-            "type": "unregister",
-            "ricardian_contract": ""
+          "name": "owner",
+          "type": "name"
         }
-    ],
-    "tables": [
+      ]
+    },
+    {
+      "name": "unregister",
+      "base": "",
+      "fields": [
         {
-            "name": "accounts",
-            "type": "account_t",
-            "index_type": "i64",
-            "key_names": [],
-            "key_types": []
+          "name": "owner",
+          "type": "name"
         }
-    ],
-    "ricardian_clauses": [],
-    "abi_extensions": []
+      ]
+    },
+    {
+      "name": "transfer",
+      "base": "",
+      "fields": [
+        {
+          "name": "from",
+          "type": "name"
+        },
+        {
+          "name": "to",
+          "type": "name"
+        },
+        {
+          "name": "quantity",
+          "type": "extended_asset"
+        },
+        {
+          "name": "memo",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "setfreetxfr",
+      "base": "",
+      "fields": [
+        {
+          "name": "owner",
+          "type": "name"
+        },
+        {
+          "name": "free_transfer",
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "name": "setfeerecip",
+      "base": "",
+      "fields": [
+        {
+          "name": "recipient",
+          "type": "name"
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "name": "signup",
+      "type": "signup",
+      "ricardian_contract": ""
+    },
+    {
+      "name": "unregister",
+      "type": "unregister",
+      "ricardian_contract": ""
+    },
+    {
+      "name": "transfer",
+      "type": "transfer",
+      "ricardian_contract": ""
+    },
+    {
+      "name": "setfreetxfr",
+      "type": "setfreetxfr",
+      "ricardian_contract": ""
+    },
+    {
+      "name": "setfeerecip",
+      "type": "setfeerecip",
+      "ricardian_contract": ""
+    }
+  ],
+  "tables": [
+    {
+      "name": "accounts",
+      "index_type": "i64",
+      "key_names": [
+        "owner"
+      ],
+      "key_types": [
+        "name"
+      ],
+      "type": "account_t"
+    },
+    {
+      "name": "feerecipient",
+      "index_type": "i64",
+      "key_names": [],
+      "key_types": [],
+      "type": "name"
+    }
+  ],
+  "error_messages": [],
+  "abi_extensions": []
 }
