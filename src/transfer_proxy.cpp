@@ -12,6 +12,10 @@ using namespace eosio;
 using namespace proxy;
 
 static constexpr uint32_t tt_ram_bytes = 245; // new token transfer ram cost
+static constexpr auto k_active    = "active"_n;
+static constexpr auto k_eosio     = "eosio"_n;
+static constexpr auto k_eosio_ram = "eosio.ram"_n;
+static constexpr auto k_transfer  = "transfer"_n;
 
 account_name get_recipient_from_memo(const std::string& memo, std::size_t& end_pos)
 {
@@ -35,7 +39,7 @@ struct transfer_args
 
 void transfer_token(account_name from, account_name to, const extended_asset& quantity, std::string memo)
 {
-    dispatch_inline(quantity.contract,  N(transfer), {{from, N(active)}}, 
+    dispatch_inline(quantity.contract, k_transfer, {{ from, k_active }}, 
         std::make_tuple(from, to, quantity.quantity, std::move(memo))
     );
 }
@@ -107,7 +111,7 @@ public:
 
     void on_transfer(account_name code, transfer_args t)
     {
-        if(t.from != N(eosio.ram) && t.to == _self)
+        if(t.from != k_eosio_ram && t.to == _self)
         {
             auto acnt = accounts.get(t.from, "account doesn't exists");
             std::size_t recip_end_pos = 0;
@@ -122,7 +126,8 @@ public:
 private:
     void buy_ram_bytes(account_name buyer, uint32_t bytes) const
     {
-        dispatch_inline(N(eosio),  N(buyrambytes), {{buyer, N(active)}}, 
+        static constexpr auto k_buyrambytes = "buyrambytes"_n;
+        dispatch_inline(k_eosio,  k_buyrambytes, {{ buyer, k_active}}, 
             std::make_tuple(buyer, _self, bytes)
         );
     }
