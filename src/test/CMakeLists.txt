@@ -1,12 +1,8 @@
 cmake_minimum_required(VERSION 3.5)
-project(transfer.proxy VERSION 1.0.0)
+project(proxy.test VERSION 1.0.0)
 
 option(GEN_ABI "Generate ABI" OFF)
-option(BUILD_TEST "Build test dapp" OFF)
 
-if(BUILD_TEST)
-    add_subdirectory(src/test)
-endif()
 
 set(CMAKE_CXX_STANDARD 17)  # require C++17 std
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -28,5 +24,5 @@ if(GEN_ABI)
 endif()
 
 add_executable(${PROJECT_NAME}.wasm 
-    "src/transfer_proxy.cpp" 
+    "proxy_test.cpp" 
 )

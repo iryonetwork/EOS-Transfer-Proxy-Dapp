@@ -27,30 +27,51 @@ public:
         proxy_(self,self)
     {}
 
-    // @abi action
+    [[eosio::action]]
     void setproxy(account_name proxy)
     {
         require_auth(_self);
         proxy_.set(proxy, _self);
     }
 
-    // @abi action
+    [[eosio::action]]
+    void open(account_name owner, account_name token_contract, asset token)
+    {
+        accounts acnt(_self, owner);
+        auto tkn = acnt.find(token.symbol.name());
+        if(tkn == acnt.end())
+        {
+            acnt.emplace(owner, [&]( auto& a) {
+                a.balance = extended_asset(0,
+                    extended_symbol{token.symbol, name{token_contract}}
+                );
+            });
+        }
+    }
+
+    [[eosio::action]]
+    void close(account_name owner, account_name token_contract, asset token)
+    {
+        accounts acnt(_self, owner);
+        auto tkn = acnt.find(token.symbol.name());
+        if(tkn != acnt.end())
+        {
+            eosio_assert(tkn->balance.quantity.amount == 0, "balance must be withdrawn first");
+            acnt.erase(tkn);
+        }
+    }
+
+    [[eosio::action]]
     void withdraw(account_name account, asset quantity, std::string memo)
     {
         accounts acnt(_self, account);
         const auto& from = acnt.get(quantity.symbol.name(), "no balance object found");
-        eosio_assert(from.balance.amount >= quantity.amount, "overdrawn balance");
+        eosio_assert(from.balance.quantity.amount >= quantity.amount, "overdrawn balance");
 
         transfer_via_proxy(account, extended_asset(quantity, from.balance.contract), std::move(memo));
-
-        if(from.balance.amount == quantity.amount) {
-            acnt.erase(from);
-        } 
-        else {
-            acnt.modify(from, account, [&](auto& a) {
-                a.balance -= quantity;
-            });
-        }
+        acnt.modify(from, account, [&](auto& a) {
+            a.balance.quantity -= quantity;
+        });
     }
 
     void on_transfer(account_name code, transfer_args t)
@@ -62,14 +83,14 @@ public:
             if(tkn == acnt.end())
             {
                 acnt.emplace(_self, [&]( auto& a) {
-                    a.balance = extended_asset(t.amount, code);
+                    a.balance = extended_asset(t.amount, name{code});
                 });
             }
             else 
             {
                 eosio_assert(tkn->balance.contract == code, "invalid token transfer");
                 acnt.modify(tkn, 0, [&](auto& a) {
-                    a.balance.amount += t.amount.amount;
+                    a.balance.quantity.amount += t.amount.amount;
                 });
             }
         }
@@ -86,13 +107,12 @@ private:
 
 
 private:
-    singleton<N(proxy), account_name> proxy_;
+    singleton<N(proxy), account_name > proxy_;
 
-    // @abi table accounts i64
-    struct account
+    struct [[eosio::table]] account
     {
         extended_asset    balance;
-        uint64_t primary_key() const { return balance.symbol.name(); }
+        uint64_t primary_key() const { return balance.quantity.symbol.name(); }
     };
 
     typedef eosio::multi_index<
@@ -119,4 +139,4 @@ extern "C" {  \
     } \
 }
 
-EOSIO_ABI(proxy_test, (setproxy)(withdraw))
+EOSIO_ABI(proxy_test, (setproxy)(open)(close)(withdraw))
