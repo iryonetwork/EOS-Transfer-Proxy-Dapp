@@ -30,7 +30,7 @@ namespace proxy {
     eosio::extended_asset get_transfer_fee(const eosio::extended_asset& value)
     {
         auto fee = value;
-        fee.amount = (fee.amount + 999LL) /1000LL; // 0.1% rounded up
+        fee.quantity.amount = (fee.quantity.amount + 999LL) /1000LL; // 0.1% rounded up
         return fee;
     }
 

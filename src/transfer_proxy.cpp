@@ -36,15 +36,14 @@ struct transfer_args
 void transfer_token(account_name from, account_name to, const extended_asset& quantity, std::string memo)
 {
     dispatch_inline(quantity.contract,  N(transfer), {{from, N(active)}}, 
-        std::make_tuple(from, to, static_cast<const asset&>(quantity), std::move(memo))
+        std::make_tuple(from, to, quantity.quantity, std::move(memo))
     );
 }
 
 
 class transfer_proxy : private contract
 {
-    //@abi table accounts i64
-    struct account_t
+    struct [[eosio::table]] account_t
     {
         account_name owner;
         bool free_transfer;
@@ -60,7 +59,7 @@ public:
         fee_recipient(self, self)
     {}
 
-    // @abi action
+    [[eosio::action]]
     void signup(account_name owner)
     {
         require_auth(owner);
@@ -72,7 +71,7 @@ public:
         });
     }
 
-    // @abi action
+    [[eosio::action]]
     void unregister(account_name owner)
     {
         require_auth(owner);
@@ -80,7 +79,7 @@ public:
         accounts.erase(acnt);
     }
 
-    // @abi action
+    [[eosio::action]]
     void transfer(account_name from, account_name to, extended_asset quantity, std::string memo)
     {
         require_auth(from);
@@ -88,7 +87,7 @@ public:
     }
 
 //private_api:
-    // @abi action
+    [[eosio::action]]
     void setfreetxfr(account_name owner, bool free_transfer)
     {
         require_auth(_self);
@@ -98,7 +97,7 @@ public:
         });
     }
 
-    // @abi action
+    [[eosio::action]]
     void setfeerecip(account_name recipient)
     {
         require_auth(_self);
@@ -116,7 +115,7 @@ public:
             eosio_assert(recipient != _self && recipient != acnt.owner, "invalid recipient");
 
             strip_receipient_from_memo(t.memo, recip_end_pos);
-            make_transfer(acnt, recipient, extended_asset(t.amount, code), std::move(t.memo));
+            make_transfer(acnt, recipient, extended_asset(t.amount, name{code}), std::move(t.memo));
         }
     }
 
@@ -141,9 +140,9 @@ private:
 
     void transfer_token_from_self(account_name ram_payer, account_name recipient, const extended_asset& quantity, std::string memo)
     {
-        if(quantity.amount > 0)
+        if(quantity.quantity.amount > 0)
         {
-            if(!token(quantity.contract).has_balance(recipient, quantity.symbol)) {
+            if(!token(quantity.contract).has_balance(recipient, quantity.quantity.symbol)) {
                 buy_ram_bytes(ram_payer, tt_ram_bytes);
             }
             transfer_token(_self, recipient, quantity, std::move(memo));
