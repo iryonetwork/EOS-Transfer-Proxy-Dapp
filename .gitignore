@@ -1,0 +1,12 @@
+# Ignore folders
+build
+
+# Compiled Object files
+src/**/*.abi
+src/**/*.wasm
+src/**/*.wast
+
+*.json
+
+# VisualCode
+*.vscode
