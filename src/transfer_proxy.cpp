@@ -132,24 +132,46 @@ private:
         );
     }
 
-    void make_transfer(const account_t& acnt, account_name recipient, extended_asset quantity, std::string memo)
+    void buy_transfer_ram(account_name ram_payer, account_name recipient, const extended_asset& quantity, account_name fee_recipient, const extended_asset& fee)
     {
-        if(!acnt.free_transfer) 
+        uint32_t bytes = 0;
+        if(fee.quantity.amount > 0)
         {
-            auto fee = get_transfer_fee(quantity);
-            quantity -= fee;
-            transfer_token_from_self(acnt.owner, fee_recipient.get(), fee, "Transfer fee");
+            if(!token(fee.contract).has_balance(fee_recipient, fee.quantity.symbol)) {
+                bytes += tt_ram_bytes;
+            }
         }
-        transfer_token_from_self(acnt.owner, recipient, quantity, std::move(memo));
-    }
 
-    void transfer_token_from_self(account_name ram_payer, account_name recipient, const extended_asset& quantity, std::string memo)
-    {
         if(quantity.quantity.amount > 0)
         {
             if(!token(quantity.contract).has_balance(recipient, quantity.quantity.symbol)) {
-                buy_ram_bytes(ram_payer, tt_ram_bytes);
+                bytes += tt_ram_bytes;
             }
+        }
+
+        if(bytes > 0) {
+            buy_ram_bytes(ram_payer, bytes);
+        }
+    }
+
+    void make_transfer(const account_t& acnt, account_name recipient, extended_asset quantity, std::string memo)
+    {
+        extended_asset fee;
+        if(!acnt.free_transfer) 
+        {
+            fee = get_transfer_fee(quantity);
+            quantity -= fee;
+        }
+
+        const auto fee_fecipient = fee_recipient.get();
+        buy_transfer_ram(acnt.owner, recipient, quantity, fee_fecipient, fee);
+        transfer_token_from_self(fee_fecipient, fee, "Transfer fee");
+        transfer_token_from_self(recipient, quantity, std::move(memo));
+    }
+
+    void transfer_token_from_self(account_name recipient, const extended_asset& quantity, std::string memo)
+    {
+        if(quantity.quantity.amount > 0) {
             transfer_token(_self, recipient, quantity, std::move(memo));
         }
     }
