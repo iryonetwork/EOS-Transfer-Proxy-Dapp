@@ -39,33 +39,30 @@ public:
     {
         accounts acnt(_self, owner);
         auto tkn = acnt.find(token.symbol.name());
-        if(tkn == acnt.end())
-        {
-            acnt.emplace(owner, [&]( auto& a) {
-                a.balance = extended_asset(0,
-                    extended_symbol{token.symbol, name{token_contract}}
-                );
-            });
-        }
+        eosio_assert(tkn == acnt.end() && 
+            token_contract != tkn->balance.contract, "account already exists");
+
+        acnt.emplace(owner, [&]( auto& a) {
+            a.balance = extended_asset(0,
+                extended_symbol{token.symbol, name{token_contract}}
+            );
+        });
     }
 
     [[eosio::action]]
     void close(account_name owner, account_name token_contract, asset token)
     {
         accounts acnt(_self, owner);
-        auto tkn = acnt.find(token.symbol.name());
-        if(tkn != acnt.end())
-        {
-            eosio_assert(tkn->balance.quantity.amount == 0, "balance must be withdrawn first");
-            acnt.erase(tkn);
-        }
+        auto tkn = acnt.get(token.symbol.name(), "account doesn't exists");
+        eosio_assert(tkn.balance.quantity.amount == 0, "balance must be withdrawn first");
+        acnt.erase(tkn);
     }
 
     [[eosio::action]]
     void withdraw(account_name account, asset quantity, std::string memo)
     {
         accounts acnt(_self, account);
-        const auto& from = acnt.get(quantity.symbol.name(), "no balance object found");
+        const auto& from = acnt.get(quantity.symbol.name(), "account not found");
         eosio_assert(from.balance.quantity.amount >= quantity.amount, "overdrawn balance");
 
         transfer_via_proxy(account, extended_asset(quantity, from.balance.contract), std::move(memo));
@@ -100,7 +97,7 @@ private:
     void transfer_via_proxy(account_name to, extended_asset amount, std::string memo)
     {
         auto proxy = proxy_.get();
-        dispatch_inline(proxy,  N(transfer), {{_self, N(active)}}, 
+        dispatch_inline(proxy,  "transfer"_n, {{_self, "active"_n}}, 
             std::make_tuple(_self, to, std::move(amount), std::move(memo))
         );
     }
