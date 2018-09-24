@@ -2,29 +2,14 @@
 #include <boost/algorithm/string/trim.hpp>
 #include <eosiolib/asset.hpp>
 #include <eosiolib/multi_index.hpp>
+#include <eosiolib/types.hpp>
 #include <string>
 
 namespace proxy {
-    std::string name_to_string(uint64_t acct_int) 
-    {
-        static constexpr const char* charmap = ".12345abcdefghijklmnopqrstuvwxyz";
-        std::string str(13,'.');
-        uint64_t tmp = acct_int;
-
-        for( uint32_t i = 0; i <= 12; ++i ) 
-        {
-            char c = charmap[tmp & (i == 0 ? 0x0f : 0x1f)];
-            str[12-i] = c;
-            tmp >>= (i == 0 ? 4 : 5);
-        }
-
-        boost::algorithm::trim_right_if( str, []( char c ){ return c == '.'; } );
-        return str;
-    }
 
     std::string gen_proxy_memo(account_name recipient, const std::string& memo)
     {
-        return name_to_string(recipient) + " " + memo;
+        return eosio::name{recipient}.to_string() + " " + memo;
     }
 
     eosio::extended_asset get_transfer_fee(const eosio::extended_asset& value)
