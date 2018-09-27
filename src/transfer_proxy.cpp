@@ -127,7 +127,7 @@ private:
     void buy_ram_bytes(account_name buyer, uint32_t bytes) const
     {
         static constexpr auto k_buyrambytes = "buyrambytes"_n;
-        dispatch_inline(k_eosio,  k_buyrambytes, {{ buyer, k_active}}, 
+        dispatch_inline(k_eosio,  k_buyrambytes, {{ buyer, k_active }}, 
             std::make_tuple(buyer, _self, bytes)
         );
     }
