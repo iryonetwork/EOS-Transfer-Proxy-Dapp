@@ -51,6 +51,11 @@ See also [proxy_test.cpp#L82](src/test/proxy_test.cpp#L82).
 cleos example:  
 ```
     cleso push action proxycontract transfer \
+        '["sender", "recipient", "15.0000 EOS@eosio.token", "transfer via cleos"]' -p sender
+```
+or
+```      
+    cleso push action proxycontract transfer \
         '["sender", "recipient", {"quantity":"15.0000 EOS","contract":"eosio.token"}, "transfer via cleos"]' -p sender
 ```
 
