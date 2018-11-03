@@ -1,15 +1,14 @@
 #pragma once
-#include <boost/algorithm/string/trim.hpp>
 #include <eosiolib/asset.hpp>
 #include <eosiolib/multi_index.hpp>
-#include <eosiolib/types.hpp>
+#include <eosiolib/name.hpp>
 #include <string>
 
 namespace proxy {
 
-    std::string gen_proxy_memo(account_name recipient, const std::string& memo)
+    std::string gen_proxy_memo(eosio::name recipient, const std::string& memo)
     {
-        return eosio::name{recipient}.to_string() + " " + memo;
+        return recipient.to_string() + " " + memo;
     }
 
     eosio::extended_asset get_transfer_fee(const eosio::extended_asset& value)
@@ -21,21 +20,21 @@ namespace proxy {
 
     struct token 
     {
-        token(account_name tkn) : _self(tkn) {}
+        token(eosio::name tkn) : _self(tkn) {}
         struct account 
         {
             eosio::asset    balance;
-            uint64_t primary_key()const { return balance.symbol.name(); }
+            uint64_t primary_key()const { return balance.symbol.code().raw(); }
         };
-        typedef eosio::multi_index<N(accounts), account> accounts;
+        using accounts = eosio::multi_index<"accounts"_n, account>;
 
-        bool has_balance(account_name owner,  eosio::symbol_type sym) const
+        bool has_balance(eosio::name owner, eosio::symbol sym) const
         {
-            accounts acnt(_self, owner);
-            return acnt.find(sym.name()) != acnt.end();
+            accounts acnt(_self, owner.value);
+            return acnt.find(sym.code().raw()) != acnt.end();
         }
 
     private:
-        account_name _self;
+        eosio::name _self;
     };
 }

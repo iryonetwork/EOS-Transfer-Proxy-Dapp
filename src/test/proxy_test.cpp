@@ -8,37 +8,28 @@
 #include <utility>
 
 using namespace eosio;
-
-
-struct transfer_args
-{
-    account_name from;
-    account_name to;
-    asset amount;
-    std::string memo;
-};
-
+static constexpr auto k_transfer = "transfer"_n;
 
 class proxy_test : private contract
 {
 public:
-    proxy_test(account_name self) : 
-        contract(self),
-        proxy_(self,self)
+    proxy_test(name self, name code, datastream<const char*> ds ) : 
+        contract(self, code, ds),
+        proxy_(self, self.value)
     {}
 
     [[eosio::action]]
-    void setproxy(account_name proxy)
+    void setproxy(name proxy)
     {
         require_auth(_self);
         proxy_.set(proxy, _self);
     }
 
     [[eosio::action]]
-    void open(account_name owner, account_name token_contract, asset token)
+    void open(name owner, name token_contract, asset token)
     {
-        accounts acnt(_self, owner);
-        auto tkn = acnt.find(token.symbol.name());
+        accounts acnt(_self, owner.value);
+        auto tkn = acnt.find(token.symbol.code().raw());
         eosio_assert(tkn == acnt.end() && 
             token_contract != tkn->balance.contract, "account already exists");
 
@@ -50,19 +41,19 @@ public:
     }
 
     [[eosio::action]]
-    void close(account_name owner, account_name token_contract, asset token)
+    void close(name owner, name token_contract, asset token)
     {
-        accounts acnt(_self, owner);
-        auto tkn = acnt.get(token.symbol.name(), "account doesn't exists");
+        accounts acnt(_self, owner.value);
+        auto tkn = acnt.get(token.symbol.code().raw(), "account doesn't exists");
         eosio_assert(tkn.balance.quantity.amount == 0, "balance must be withdrawn first");
         acnt.erase(tkn);
     }
 
     [[eosio::action]]
-    void withdraw(account_name account, asset quantity, std::string memo)
+    void withdraw(name account, asset quantity, std::string memo)
     {
-        accounts acnt(_self, account);
-        const auto& from = acnt.get(quantity.symbol.name(), "account not found");
+        accounts acnt(_self, account.value);
+        const auto& from = acnt.get(quantity.symbol.code().raw(), "account not found");
         eosio_assert(from.balance.quantity.amount >= quantity.amount, "overdrawn balance");
 
         transfer_via_proxy(account, extended_asset(quantity, from.balance.contract), std::move(memo));
@@ -71,69 +62,66 @@ public:
         });
     }
 
-    void on_transfer(account_name code, transfer_args t)
+    void on_transfer(name from, name to, asset amount, std::string memo)
     {
-        if(t.to == _self)
+        if(to == _self)
         {
-            accounts acnt(_self, t.from);
-            auto tkn = acnt.find(t.amount.symbol.name());
+            accounts acnt(_self, from.value);
+            auto tkn = acnt.find(amount.symbol.code().raw());
             if(tkn == acnt.end())
             {
                 acnt.emplace(_self, [&]( auto& a) {
-                    a.balance = extended_asset(t.amount, name{code});
+                    a.balance = extended_asset(amount, _code);
                 });
             }
             else 
             {
-                eosio_assert(tkn->balance.contract == code, "invalid token transfer");
-                acnt.modify(tkn, 0, [&](auto& a) {
-                    a.balance.quantity.amount += t.amount.amount;
+                eosio_assert(tkn->balance.contract == _code, "invalid token transfer");
+                acnt.modify(tkn, same_payer, [&](auto& a) {
+                    a.balance.quantity += amount;
                 });
             }
         }
     }
 
 private:
-    void transfer_via_proxy(account_name to, extended_asset amount, std::string memo)
+    void transfer_via_proxy(name to, extended_asset amount, std::string memo)
     {
         auto proxy = proxy_.get();
-        dispatch_inline(proxy,  "transfer"_n, {{_self, "active"_n}}, 
+        dispatch_inline(proxy,  k_transfer, {{ _self, "active"_n }}, 
             std::make_tuple(_self, to, std::move(amount), std::move(memo))
         );
     }
 
 
 private:
-    singleton<N(proxy), account_name > proxy_;
+    singleton<"proxy"_n, name > proxy_;
 
     struct [[eosio::table]] account
     {
         extended_asset    balance;
-        uint64_t primary_key() const { return balance.quantity.symbol.name(); }
+        uint64_t primary_key() const { return balance.quantity.symbol.code().raw(); }
     };
 
     typedef eosio::multi_index<
-        N(accounts), account
+        "accounts"_n, account
     > accounts;
 
 };
 
-
-#undef EOSIO_ABI
-#define EOSIO_ABI(TYPE, MEMBERS) \
-extern "C" {  \
-    void apply( uint64_t receiver, uint64_t sender, uint64_t action ) { \
-        auto self = receiver; \
-        TYPE thiscontract( self ); \
-        if(sender == self) { \
-            switch( action ) { \
-                EOSIO_API( TYPE, MEMBERS ) \
+#undef EOSIO_DISPATCH
+#define EOSIO_DISPATCH(TYPE, MEMBERS) \
+extern "C" { \
+    void apply(uint64_t receiver, uint64_t code, uint64_t action) { \
+        if(code == receiver) { \
+            switch(action) { \
+                EOSIO_DISPATCH_HELPER(TYPE, MEMBERS) \
             } \
         } \
-        else if(action == N(transfer)) { \
-            thiscontract.on_transfer(sender, unpack_action_data<transfer_args>()); \
+        else if(action == k_transfer.value) { \
+            execute_action(name(receiver), name(code), &TYPE::on_transfer); \
         } \
     } \
 }
 
-EOSIO_ABI(proxy_test, (setproxy)(open)(close)(withdraw))
+EOSIO_DISPATCH(proxy_test, (setproxy)(open)(close)(withdraw))
